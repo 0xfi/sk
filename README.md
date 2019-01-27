@@ -1,5 +1,5 @@
 <div align="center">
-    <i>simple kernel</i>
+    <img src="img/logo.png">
 </div>
 
 - [Introduction](#introduction)
@@ -15,6 +15,9 @@
 - [Credits](#credits)
 
 # Introduction
+sk is a simple kernel designed mostly for education.
+
+I'll write more about its history, etc. later, I don't feel like it right now.
 
 # `sk` Tool
 The script `sk` is responsible for managing all of the production and managing
