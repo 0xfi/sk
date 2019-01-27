@@ -1,11 +1,7 @@
 #!/bin/bash
 
-PREFIX="$PWD/cross"
-TARGET="i686-elf"
+. sk.config
 PATH="$PREFIX/bin:$PATH"
-
-V_BINUTILS="2.31"
-V_GCC="8.2.0"
 
 die() {
     echo "fatal: $1"
@@ -36,7 +32,7 @@ SEE ALSO
 EOF
 }
 
-_config() {
+_setup() {
     rm -rf "$PREFIX/build" && mkdir -p "$PREFIX/build" || \
         die "Incorrect permissions for '$PREFIX/build'"
     cd "$PREFIX/build"
@@ -73,7 +69,7 @@ _config() {
 
 for arg in "$@"; do
     case "$arg" in
-        config|help)
+        setup|help)
             cmds="$cmds $arg";;
         *) die "Unknown command '$arg'";;
     esac
