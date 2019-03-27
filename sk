@@ -1,80 +1,55 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-. sk.config
+source sk.config
 PATH="$PREFIX/bin:$PATH"
 
-die() {
-    echo "fatal: $1"
-    exit ${2-1}
+@() {
+    printf "[ ] $1"
+    shift
+    if $@ >&2 2>sk.log; then
+        printf "\r[\033[32;1mv\033[m]\n"
+    else
+        printf "\r[\033[31;1mx\033[m]\n"
+        exit 1
+    fi
 }
 
-_help() {
-cat <<EOF
-USAGE
-    ./make [options] command
+__config() {
+    @ "Wiping $PREFIX" rm -rf "$PREFIX"
+    @ "Setting up build directory ($PREFIX/build)" mkdir -p "$PREFIX/build"
+        cd "$PREFIX/build"
+    @ "Fetching binutils" \
+        curl -L "https://ftp.gnu.org/gnu/binutils/binutils-$V_BINUTILS.tar.gz" \
+        -o binutils.tar.gz
+    @ "Extracting binutils" tar xf binutils.tar.gz
+    @ "Setting up binutils build environment" mkdir -p "build-binutils"
+        cd "build-binutils"
+    @ "Configuring binutils " \
+        ../binutils-$V_BINUTILS/configure --target=$TARGET \
+        --prefix="$PREFIX" --with-sysroot --disable-nls --disable-werror
+    @ "Building binutils" make
+    @ "Installing binutils to $PREFIX" make install
+        cd ..
 
-COMMANDS
-    help
-        Print this help message.
+    @ "Confirming install" which -- $TARGET-as
 
-    config
-        Download, configure, and compile the cross-compiler (gcc and binutils).
-
-ABOUT
-    For setting this up I want minimal dependancies so part of that is doing as
-    much as possible from scratch, and one of those things was the build tool.
-    Instead of using GNU Make, I implemented by own "version" of make which is
-    designed specifically for this project.
-
-SEE ALSO
-    make
-    gen
-EOF
+    @ "Fetching gcc" \
+        curl -L "https://ftp.gnu.org/gnu/gcc/gcc-$V_GCC/gcc-$V_GCC.tar.gz" \
+        -o gcc.tar.gz
+    @ "Extracting gcc" tar xf gcc.tar.gz
+    @ "Setting up gcc build environment" mkdir build-gcc
+        cd build-gcc
+    @ "Configuring gcc" \
+        ../gcc-$V_GCC/configure --target=$TARGET --prefix="$PREFIX" \
+        --disable-nls --enable-languages=c --without-headers
+    @ "Building gcc" make all-gcc
+    @ "Building libgcc" make all-target-libgcc
+    @ "Installing gcc" make install-gcc
+    @ "Installing libgcc" make install-target-libgcc
 }
 
-_setup() {
-    rm -rf "$PREFIX/build" && mkdir -p "$PREFIX/build" || \
-        die "Incorrect permissions for '$PREFIX/build'"
-    cd "$PREFIX/build"
-
-    curl -L "https://ftp.gnu.org/gnu/binutils/binutils-$V_BINUTILS.tar.gz" \
-        -o binutils.tar.gz || die "Failed to download binutils"
-    tar xf binutils.tar.gz || die "Failed to extract binutils"
-    rm binutils.tar.gz && mkdir -p build-binutils || \
-        die "Incorrect permissions for '$PREFIX/build'"
-    cd build-binutils
-    ../binutils/configure --target=$TARGET \
-        --prefix="$PREFIX" --with-sysroot --disable-nls --disable-werror || \
-        die "Failed to configure binutils"
-    make || die "Failed to make binutils"
-    make install || die "Failed to install binutils to '$PREFIX'"
-    cd ..
-
-    which -- $TARGET-as || die "$TARGET-as is not in PATH"
-
-    curl -L "https://ftp.gnu.org/gnu/gcc/gcc-$V_GCC/gcc-$V_GCC.tar.gz" \
-        -o gcc.tar.gz || die "Failed to download gcc"
-    tar xf gcc.tar.gz || die "Failed to extract gcc"
-    rm gcc.tar.gz && mkdir build-gcc || \
-        die "Incorrect permissions for "
-    cd build-gcc
-    ../gcc/configure --target=$TARGET --prefix="$" \PREFIX
-        --disable-nls --enable-languages=c --without-headers || \
-        die "Failed to configure gcc"
-    make all-gcc || die "Failed to make gcc"
-    make all-target-libgcc || die "Failed to make cross-gcc"
-    make install-gcc || die "Failed to install gcc to '$PATH'"
-    make install-target-libgcc || die "Failed to install cross-gcc to '$PATH'"
+__clean() {
+    @ "Removing $PREFIX" rm -rf $PREFIX
 }
 
-for arg in "$@"; do
-    case "$arg" in
-        setup|help)
-            cmds="$cmds $arg";;
-        *) die "Unknown command '$arg'";;
-    esac
-done
-
-for cmd in $cmds; do
-    _$cmd
-done
+__$1
