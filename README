@@ -1,0 +1,20 @@
+____________________________________        
+________________/\\\________________       
+________________\/\\\_______________      
+_____/\\\\\\\\\\_\/\\\\\\\\_________     
+_____\/\\\//////__\/\\\////\\\______    
+______\/\\\\\\\\\\_\/\\\\\\\\/______   
+_______\////////\\\_\/\\\///\\\_____  
+_________/\\\\\\\\\\_\/\\\_\///\\\__ 
+_________\//////////__\///____\///__
+____________________________________
+
+- Simple, hobbyist kernel that doesn't claim to be anything special.
+- Support for x86_64 (and more in the future, probably).
+- Easy build process (just run `make`).
+
+bin/        :: untracked, output directory for binaries
+etc/        :: configuration
+include/    :: header files
+src/        :: source files (C and assembler)
+README      :: this file

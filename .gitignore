@@ -1,6 +1,11 @@
-cross/
-logs/
+# Ignore intermediate object files.
 *.o
-*.so
-*.a
+
+# Ignore collated binary blobs (kernel executables).
+*.elf
+
+# Ignore disk images.
 *.iso
+
+# Ignore generated manual pages.
+*.html
